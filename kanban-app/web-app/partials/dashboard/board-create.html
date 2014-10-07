@@ -1,0 +1,22 @@
+<div class="default-template modal-panel">
+	<div class="modal-header"><h4 class="modal-title"><i class="fa fa-gear"></i> New Board</h4></div>
+	<div class="panel-body">
+		<form parsley-validator data-submit="save()">
+			<div class="alert alert-danger error-msg" ng-show="errorMessage">
+				{{errorMessage}}
+			</div>
+			<div class="form-group">
+				<label>Name</label>
+				<input class="form-control" ng-model="board.name" type="text" placeholder="Board name" parsley-required="true">
+			</div>
+			<div class="form-group">
+				<label>Description</label>
+				<textarea class="form-control" data-rangelength="[2,250]" placeholder="Board description" ng-model="board.desc"></textarea>
+			</div>
+			<nav class="pull-right">
+				<button type="submit" class="btn btn-info" tabindex="5">Save</button>
+				<button type="button" class="btn btn-defaul" ng-click="cancel()">Cancel</button>
+			</nav>
+		</form>
+	</div>
+</div>

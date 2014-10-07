@@ -1,0 +1,146 @@
+<div class="default-template modal-panel card-settings">
+	<div class="panel-body">
+		<div class="list-group">
+			<div class="list-group-item">
+				<div class="clearfix">
+					<div class="pull-left">
+						<a ng-show="card.subscribed" class="btn btn-sm btn-gray" href="javascript:;" title="You are subscribed to this card."><i class="glyphicon glyphicon-eye-open"></i></a>
+						<a ng-show="card.attachments.length" class="btn btn-sm btn-gray" title="{{card.attachments.length}} attachment(s)">{{card.attachments.length}} <i class="glyphicon glyphicon-paperclip"></i></a>
+						<a ng-show="card.assignedUsers.length" class="btn btn-sm btn-gray" title="{{card.assignedUsers.length}} assigned">{{card.assignedUsers.length}} <i class="glyphicon glyphicon-user"></i></a>
+						<div ng-show="card.dueDate" class="btn btn-sm btn-gray" href="javascript:;"><i class="glyphicon glyphicon-time"></i>
+							<a class="remove-dd" href="javascript:;" title="Remove Due Date" ng-click="removeDueDate()">x</a>
+						</div>
+					</div>
+					<div class="pull-right" >
+						<div class='btn btn-default btn-sm input-group date' date-time-picker>
+							<input data-dueDate data-format="YYYY/MM/DD" type="hidden" class="form-control">
+							<button class="input-group-addon"><span class="glyphicon glyphicon-calendar pull-left"></span> Due Date</button>
+						</div>
+						<button ng-if="!card.subscribed" class="btn btn-sm btn-warning" ng-click="subcribeToCard()" title="Subscribe to this card to receive notification for any updates.">
+							<span class="glyphicon glyphicon-unchecked"></span> Subscribe 
+						</button>
+						<button ng-if="card.subscribed" class="btn btn-sm btn-warning" ng-click="unSubcribeToCard()" title="Unsubscribe to stop receiving notifications.">
+							<span class="glyphicon glyphicon-check"></span> Subscribe
+						</button>
+					</div>
+				</div>
+
+				<div class="clearfix offset-top-small">
+					<h4 ng-show="!editName">{{card.name | characters:25}}<i class="fa fa-edit editable-field" ng-click="showEditName(true)"></i></h4>
+
+					<div ng-show="editName">
+						<textarea class="form-control card-name" rows="3" ng-model="card.name"></textarea>
+						<nav class="nav-well">
+							<button class="btn btn-primary btn-sm" ng-click="save()">Save</button>
+							<button class="btn btn-default btn-sm" ng-click="showEditName(false, true)">Cancel</button>
+						</nav>
+					</div>
+
+					<p ng-show="!editDesc" class="description">{{card.desc || "Description was not provided." }} <i class="fa fa-edit editable-field" ng-click="showEditDesc(true)"></i></p>
+					<div ng-show="editDesc">
+						<textarea class="form-control card-description" rows="3" ng-model="card.desc"></textarea>
+						<nav class="nav-well">
+							<button class="btn btn-primary btn-sm" ng-click="save()">Save</button>
+							<button class="btn btn-default btn-sm" ng-click="showEditDesc(false, true)">Cancel</button>
+						</nav>
+					</div>
+
+				</div>
+			</div>
+
+			<div class="list-group-item label-section">
+				<span ng-show="card.labels.length" class="label-close">
+					<a href="javascript:;" class="close lbl pull-right" title="Remove Label" ng-click="unassignLabel(card.labels[0].id)"><i class="fa fa-times" /></i></a>
+				</span>
+				<a ng-if="!card.labels.length" label-picker data-toggle="popover" class="form-control text-leo-decoration btn-default" href="javascript:;">Assign Label</a>
+				<a ng-if="card.labels.length" label-picker data-toggle="popover" class="form-control text-leo-decoration btn-label" ng-style="{backgroundColor: '#' + card.labels[0].color}" href="javascript:;">{{card.labels[0].name}}</a>
+			</div>
+
+			<div class="list-group-item clearfix" assign-members="card" ng-controller="AssignCardMemberCtrl">
+				<div class="clearfix">
+					<h4 class="list-group-item-heading pull-left">Assigned Members</h4>
+					<button class="btn btn-default btn-xs pull-right" type="button" title="Click here to assign members." ng-click="coyToggled = !coyToggled">
+						<span class="fa fa-users"></span> Manage
+					</button>
+				</div>
+
+				<div class="coy-members" ng-class="{coyShow: coyToggled}">
+						<ul class="member-list clearfix">
+							<li class="list" ng-repeat="bm in boardMembers | filter:{ fullname: search.fullname }" ng-if="!bm.assigned"  ng-hide="bm.userStatus =='CLOSED'">
+								<div class="tablet clearfix">
+									<a id="{{bm.id}}" class="member" data-member="{{bm}}"><img class="small-avatar" data="bm" avatar nopopover="true">
+										<span>
+											<i>{{bm.fullname}}</i><br>
+											<strong>Project Role:</strong> {{bm.role}}<br>
+											<small class="text-danger" ng-if="cm.userStatus=='SUSPENDED'">{{cm.userStatus}}</small>
+										</span>
+									</a>
+								</div>
+							</li>
+						</ul>
+				</div>
+				<div class="board-members coyShow coy-project-members">
+					<div class="member-list">
+						<ul class="clearfix">
+							<li class="list" ng-repeat="au in boardMembers" ng-if="au.assigned" ng-hide="au.userStatus =='CLOSED'">
+								<div class="tablet clearfix">
+									<a id="{{au.id}}" class="member" data-member="{{au}}"><img class="small-avatar" data="au" avatar nopopover="true">
+										<span>
+											<i>{{au.fullname}}</i><br>
+											<strong>Project Role:</strong> {{au.role}}<br>
+											<small class="text-danger" ng-if="au.userStatus=='SUSPENDED'">{{au.userStatus}}</small>
+										</span>
+									</a>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+			<div class="list-group-item clearfix">
+				<div class="clearfix">
+					<h4 class="list-group-item-heading pull-left">Attachments</h4>
+					<button class="btn btn-default btn-xs pull-right btn-upload" type="button" title="Click here to upload attachment.">
+						<span class="glyphicon-upload glyphicon"></span> Upload
+					</button>
+				</div>
+				<div class="attachments clearfix">
+					<div class="file-uploader" ng-file-select="addAttachment($files)" max-size="{{config.SYS_PARAMS.maxFilesizeCardAttachment}}" file-type="file" triggered-by-element=".btn-upload"
+					multiple="multiple" file-type="FILE"></div>
+				</div>
+				<div class="board-members clearfix">
+					<ul class="attachments list-style-clear">
+						<li ng-repeat="file in card.attachments | orderBy: createdAt" class="clearfix">
+							<div ng-show="file" class="upload-file pull-left clearfix">
+								<a href="{{config.SYS_PARAMS.url}}/{{file.relativePath}}" target="_blank" title="{{file.name}}">
+									<div class="file-ext" ng-switch="Util.isImage(file)">
+										<img ng-switch-when="true" class="img-rounded" ng-src="{{config.SYS_PARAMS.url}}/{{file.relativePath}}" alt="{{file.extension}}" />
+										<span ng-switch-when="false" class="text-ext">{{file.extension}}</span>
+									</div>
+									{{file.name | characters:10}}
+									<div style="width:100%" ng-switch="file.size > 1024*1024">(
+										<span ng-switch-when="true">{{file.size / 1024 / 1024 | number:2}} MB</span>
+										<span ng-switch-default>{{file.size / 1024 | number:2}} kB</span>
+									)</div>
+								</a>
+								<a href="javascript:;" title="Remove attachment" ng-click="deleteAttachment(file.id)"><i class="fa fa-trash-o"></i></a>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="panel-footer clearfix">
+		<p class="pull-left">
+			<button class="btn btn-danger" ng-click="deleteCard()"><i class="fa fa-trash-o"></i> Delete</button>
+		</p>
+		<p class="pull-right">
+			<button class="btn btn-default" ng-click="cancel()">Close</button>
+		</p>
+		
+	</div>
+</div>

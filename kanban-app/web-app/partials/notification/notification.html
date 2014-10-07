@@ -1,0 +1,18 @@
+<div class="panel-body notification">
+	<h3>Notifications</h3>
+	<ul class="list-notification list-group" resizeable-listing="notifications">
+		<li class="list-group-item clearfix {{notification.status}}" ng-repeat="notification in notifications">
+			<img class="pull-left small-avatar" data="notification.activity.actor" avatar nopopover="true">
+			<div class="pull-left notification-info">
+				<b>{{notification.activity.boardTitle}}</b><br/>
+				<a href="#">
+					{{notification.activity.actor.fullname}} {{notification.activity | activityMessage}}
+					&nbsp;<small class="text-muted">{{notification.activity.time | date:'dd-MMM-yyyy HH:mm'}}</small>
+				</a>
+			</div>
+		</li>
+	</ul>
+
+	<button ng-if="!loading"  class="btn btn-default" style="width: 100%;" ng-click="loadMore()" ng-disabled="page > numberOfPages" ng-hide="page == numberOfPages">Load More</button>
+	<button ng-if="loading"  class="btn btn-default" style="width: 100%;"><i class="fa fa-refresh"></i>&nbsp;Loading..</button>
+</div>

@@ -1,0 +1,31 @@
+<div class="notification-popover">
+
+	<a href="javascript:;" class="dropdown-toggle" ng-click="getNewNotifications()">
+		<i class="fa fa-comment-o fa-2x"></i>
+		<b ng-if="unReadCount > 0" class="badge badge-notes bg-danger count-n">{{unReadCount}}</b>
+	</a>
+
+	<ul class="dropdown-menu" style="width:350px;">
+		<li style="width:100%;">
+			<section class="m-l-small m-t-mini">
+				<section class="panel panel-large arrow-top">
+					<header class="panel-heading bg-white"><span class="h5"><strong>You have <span class="count-n">{{unReadCount}}</span> unread notifications</strong></span></header>
+
+					<div class="list-group list-group-flush m-t-n notification-item" ng-repeat="notification in notifications | orderBy:'createDate':true">
+						
+						<a href="javascript:;" class="media list-group-item {{notification.status}}">
+							<img class="tiny-avatar" data="notification.activity.actor" avatar nopopover="true">
+							<span class="media-body block m-b-none" >
+								{{notification.activity.actor.fullname}}&nbsp;{{notification.activity | activityMessage | characters:30}}
+								<br />
+								<small class="text-muted">{{notification.activity.time | date:'dd-MMM-yyyy HH:mm'}}</small>
+							</span>
+						</a>
+					</div>
+					<footer class="panel-footer text-small"><a href="#/notifications">See all the notifications</a></footer>
+				</section>
+			</section>
+		</li>
+	</ul>
+
+</div>

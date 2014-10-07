@@ -1,0 +1,163 @@
+<div class="container default-template">
+	<div class="col col-lg-8 center">
+		<div class="panel panel-body panel-default no-padding">
+			<!--div data="responseMessage" response-message></div-->
+			<div ng-if="mode === 'VIEW'">
+				<ul class="list-style-clear row-dotted">
+					<li>
+						<div class="cell">
+							<div class="col col-sm-8">
+								<h3 class="header"><i class="fa"></i>Profile</h3>
+							</div>
+						</div>
+					</li>
+					<li>
+						<div class="clearfix offset-top-small" >
+							<div class="form-group clearfix">
+								<div class="col-sm-5">
+									<div class="profile-avatar"><img class="thumb-large" avatar data="profile" nopopover="true"></div>
+								</div>
+							</div>
+
+							<div class="clearfix">
+								<label class="col-sm-3 control-label" for="fullname">Display name</label>
+								<div class="col-sm-5">
+									{{profile.fullname}}
+								</div>
+							</div>
+
+							<div class="clearfix">
+								<label class="col-sm-3 control-label" for="initials">Initials</label>
+								<div class="col-sm-5">
+									{{profile.initials}}
+								</div>
+							</div>
+
+							<div class="clearfix">
+								<label class="col-sm-3 control-label" for="initials">Email</label>
+								<div class="col-sm-5">
+									{{profile.email}}
+								</div>
+							</div>
+
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div ng-if="mode === 'EDIT'">
+				<ul class="list-style-clear row-dotted form-horizontal">
+					<li>
+						<ul class="nav nav-tabs inline plain-tabs">
+							<li class="active"><a data-toggle="tab"  ng-click="toggleTab('details')" style="cursor:pointer;">Account Details</a></li>
+							<li><a data-toggle="tab" ng-click="toggleTab('email')" style="cursor:pointer;">Change Email</a></li>
+							<li><a data-toggle="tab"  ng-click="toggleTab('password')" style="cursor:pointer;">Change Password</a></li>
+						</ul>
+					</li>
+					<li ng-show="detailsOn">
+						<form class="offset-top-small" parsley-validator data-submit="updateDetails()">
+							<div class="form-group">
+								<label class="col-sm-3 control-label" for="fullname"></label>
+								<div class="col-sm-5">
+									<div class="profile-avatar" ng-mouseover="hovertext=true" ng-mouseout="hovertext=false">
+										<img class="thumb-medium" avatar data="profile" nopopover="true">
+										<span class="change-txtavatar"  ng-show="hovertext">
+											<span class="text"><i class="icon-paperclip"></i>Change</span>
+										</span>
+									</div>
+									<div class="file-uploader" ng-file-select="fileUpload($files)" max-size="{{systemParams.maxFilesizeAvatar}}" file-type="image" triggered-by-element=".change-txtavatar .text"></div>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-3 control-label" for="fullname">Display name</label>
+								<div class="col-sm-5">
+									<input class="form-control" type="text" name="fullname" id="fullname" ng-model="profile.fullname"  parsley-required="true" parsley-minlength="2" parsley-maxlength="25" parsley-alphanumspace="true">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-3 control-label" for="initials">Initials</label>
+								<div class="col-sm-5">
+									<input class="form-control" type="text" name="initials" id="initials" ng-model="profile.initials"  parsley-required="true" parsley-minlength="1" parsley-maxlength="25" parsley-alphanumspace="true">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-3 control-label"></label>
+								<div class="col-sm-5">
+									<button class="btn btn-primary  btn-small" type="submit">Update Details</button>
+								</div>
+							</div>
+						</form>
+					</li>
+
+					<li ng-show="emailOn">
+						<form class="offset-top-small" data-submit="changeEmail()" parsley-validator>
+							<div class="clearfix">
+								<div class="text-center col col-sm-12">
+									<p>
+										<span>Your email address is currently {{profile.email}} </span>
+									</p>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="newemail">New Email Address</label>
+								<div class="col-sm-5">
+									<input class="form-control" name="newemail" id="newemail" type="text" placeholder="eg. john_doe@example.com" ng-model="profile.newemail" 
+									parsley-required="true" parsley-type="email">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label"></label>
+								<div class="col-sm-3">
+									<button type="submit" class="btn btn-primary  btn-small">Change Email</button>
+								</div>
+							</div>
+
+							<div class="col col-sm-12">
+								<p>
+									*** This change will take effect after you click on the link in the confirmation email sent to the new email address.
+								</p>
+							</div>
+						</form>
+					</li>
+
+					<li ng-show="passwordOn">
+						<form class="offset-top-small" data-submit="changePassword()" parsley-validator>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="oldpassword">Old Password</label>
+								<div class="col-sm-5">
+									<input class="form-control" placeholder="e.g., ********" name="oldpassword" id="oldpassword" type="password" ng-model="profile.oldpassword" parsley-required="true" auto-fill parsley-minlength="6" parsley-minlength-message="Password should be minimum of %s characters." parsley-notequalto="#newpassword" parsley-notequalto-message="New password cannot be the same as old password.">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="newpassword">New Password</label>
+								<div class="col-sm-5">
+									<input class="form-control" placeholder="e.g., ********" name="newpassword" id="newpassword" type="password" ng-model="profile.newpassword" parsley-required="true" parsley-equalto="#confirmpassword" parsley-equalto-message="New Password should be the same as Confirm Password" parsley-minlength="6"  parsley-minlength-message="Password should be minimum of %s characters."parsley-notequalto="#oldpassword"  parsley-notequalto-message="New password cannot be the same as old password.">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="confirmpassword">Confirm Password</label>
+								<div class="col-sm-5">
+									<input class="form-control" placeholder="e.g., ********" name="confirmpassword" id="confirmpassword" type="password" ng-model="profile.confirmpassword" parsley-required="true" parsley-equalto="#newpassword" parsley-equalto-message="Confirm Password should be the same as New Password" parsley-minlength="6"  parsley-minlength-message="Password should be minimum of %s characters.">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label"></label>
+								<div class="col-sm-3">
+									<button type="submit" class="btn btn-primary  btn-small">Change Password</button>
+								</div>
+							</div>
+						</form>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+

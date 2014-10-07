@@ -1,0 +1,133 @@
+<div class="default-template modal-panel">
+	<div class="modal-header">
+		<h4 ng-if="!boardInfo" class="modal-title"><i class="fa fa-gear"></i> New Board</h4>
+		<h4 ng-if="boardInfo" class="modal-title"><i class="fa fa-gear"></i> Board Settings - {{boardInfo.title}}</h4>
+	</div>
+	<div class="border-bottom-extended">
+		<ul class="nav nav-tabs  inline plain-tabs">
+			<li ng-if="boardSettingsTabEnabled" ng-class="{active: tabSettings}"><a data-toggle="tab" ng-click="toggleTabs(TAB_SETTINGS_INDEX)">Board Settings</a></li>
+			<li ng-if="!boardSettingsTabEnabled"><a style="color:#aaa">Board Settings</a></li>
+			<li ng-if="boardMemberTabEnabled" ng-class="{active: !tabSettings}"><a data-toggle="tab" ng-click="toggleTabs(TAB_MEMBERS_INDEX)">Board Members</a></li>
+			<li ng-if="!boardMemberTabEnabled"><a style="color:#aaa">Board Members</a></li>
+		</ul>
+	</div>
+
+	<div class="panel-body">
+		<!-- NEW BOARD -->
+		<div ng-controller="NewBoardCtrl" ng-init="advancedToggleIcon = 'glyphicon-expand'" ng-show="tabSettings">
+			<form parsley-validator data-submit="saveBoard()">
+
+				<div class="form-group" ng-if="!isNew">
+					<label>Board Status</label>
+					<p>
+						<input type="radio" ng-model="board.status" ng-value="boardStatusList[0]" parsley-group="status" id="ACTIVE" /> <label for="ACTIVE"> Active</label>&nbsp;
+						<input type="radio" ng-model="board.status" ng-value="boardStatusList[1]" parsley-group="status" id="COMPLETED" /> <label for="COMPLETED"> Completed</label>&nbsp;
+					</p>
+				</div>
+
+				<div class="form-group">
+					<label>Name</label>
+					<input class="form-control" ng-model="board.title"  data-trigger="change" type="text" placeholder="Board name" parsley-required="true" parsley-minlength="2" parsley-maxlength="25" parsley-alphanumspace="true">
+				</div>
+				<div class="form-group">
+					<label>Description</label>
+					<textarea class="form-control" data-rangelength="[2,250]" placeholder="Board description" ng-model="board.description" parsley-minlength="1" parsley-maxlength="255"></textarea>
+				</div>
+				<div class="clearfix"><a href="javascript:;" ng-click="toggleAdvanced()"><span class="glyphicon {{advancedToggleIcon}}"></span> Advanced options</a></div>
+
+				<div class="column-mngmt" ng-show="advancedToggleShown">
+					<table class="table table-striped sortableTable">
+						<thead>
+							<tr>
+								<th>&nbsp;</th>
+								<th class="text-center">Column Name</th>
+								<th>Max Card</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody sortable-table-rows class="sortableTBody">
+							<tr ng-repeat="column in columns | filter:{ status: 'ACTIVE' } | orderBy:'pos'" data-column="{{column}}" data-pos="{{column.pos}}">
+								<td><a href="javascript:;" class="handle"><i class="glyphicon glyphicon-move"></i></a></td>
+								<td width="70%;"><input class="form-control" parsley-trigger="change" ng-model="column.title" placeholder="Column Name" parsley-required="true" parsley-minlength="2" parsley-maxlength="25" parsley-alphanumspace="true" /></td>
+								<td><input class="form-control" type="number" ng-model="column.max" parsley-required="true" parsley-min="1" parsley-max="100" /></td>
+								<td ng-if="isNew"><a href="javascript:;" class="action"><i class="fa fa-trash-o" ng-click="removeColumn($index)"></i></a></td>
+								<td ng-if="!isNew"><a href="javascript:;" class="action"><i class="fa fa-trash-o" ng-click="updateColumn(column, 'status', 'DELETED')"></i></a></td>
+							</tr>
+						</tbody>
+					</table>
+					<p><i>* Drag the <i class="glyphicon glyphicon-move"></i> icon to re-order the columns.</i></p>
+					<button type="button" class="btn btn-default btn-sm" ng-click="addColumn()"><span class="glyphicon glyphicon-plus-sign"></span> Add Column</button>
+				</div>
+
+				<hr>
+
+				<div class="clearfix">
+					<p ng-if="!isNew && aclByBoard.project.deleteBoard" class="pull-left">
+						<button class="btn btn-danger" ng-click="deleteBoard($event)"><i class="fa fa-trash-o"></i> Delete</button>
+					</p>
+					<p class="pull-right">
+						<button type="submit" class="btn btn-info" tabindex="5">Save</button>
+						<button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+					</p>
+				</div>
+
+			</form>
+		</div>
+		<!-- NEW BOARD -->
+
+		<div ng-controller="AssignBoardMemberCtrl" assign-members="board" ng-hide="tabSettings" id="boardMemberMngmt">
+			<p><i>* Drag the member's name card to the right to assign them to the board.</i></p>
+			<div ng-include="'/partials/dashboard/legend.html'"></div>
+			<div class="clearfix">
+				<div class="pull-left section coy-members">
+					<h5><strong>Project Members</strong></h5>
+					<div class="coyShow coy-project-members">
+						<ul class="member-list clearfix">
+							<li class="list" ng-repeat="cm in members" ng-if="!cm.boardRole && cm.status!='PENDING'" ng-init="aclByCM=getAccessMatrix(cm.role, cm.boardRole)" data-draggable="{{aclByCM.board.addRemoveMember}}" ng-hide="cm.userStatus =='CLOSED'">
+								<div class="tablet clearfix">
+									<a id="{{cm.userId}}" class="member" data-member="{{cm}}"><img class="small-avatar" data="cm" avatar nopopover="true">
+										<span>
+											<i>{{cm.fullname}}</i><br/>
+											{{cm.role}}<br/>
+											<small class="text-danger" ng-if="cm.userStatus=='SUSPENDED'">{{cm.userStatus}}</small>
+										</span>
+									</a>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="pull-right section board-members">
+					<h5><strong>Board Members</strong></h5>
+					<div class="coyShow coy-project-members">
+						<div class="member-list">
+						<ul class="clearfix">
+							<li class="list" ng-repeat="bm in members" ng-if="bm.boardRole" ng-init="aclByBM=getAccessMatrix(bm.role, bm.boardRole)" data-draggable="{{aclByBM.board.addRemoveMember}}" ng-hide="bm.userStatus =='CLOSED'">
+								<div class="tablet clearfix">
+									<a id="{{bm.userId}}" class="member" data-member="{{bm}}"><img class="small-avatar {{aclByBM.board.addRemoveMember && 'grab'||''}}" data="bm" avatar nopopover="true">
+										<span>
+											<i>{{bm.fullname}}</i><br/>
+											{{bm.role}}<br>
+											<small  class="text-danger" ng-if="bm.userStatus=='SUSPENDED'">{{bm.userStatus}}</small>
+										</span>
+									</a>
+								</div>
+							</li>
+						</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<hr>
+			<div class="clearfix">
+				<p ng-if="!isNew" class="pull-left">
+					<button class="btn btn-danger" ng-if="aclByBoard.project.deleteBoard" ng-click="deleteBoard($event)"><i class="fa fa-trash-o"></i> Delete</button>
+				</p>
+				<p class="pull-right">
+					<button class="btn btn-default" ng-click="cancel()">Close</button>
+				</p>
+			</div>
+		</div>
+
+	</div>
+</div>

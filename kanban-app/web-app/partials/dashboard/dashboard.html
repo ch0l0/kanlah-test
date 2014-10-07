@@ -1,0 +1,60 @@
+<div class="dashboard-sub-header clearfix" ng-controller="NewProjectCtrl">
+	<button ng-disabled="ownedProj.length >= maxProjects" class="btn btn-default pull-left" ng-click="newProject = !newProject" ng-hide="newProject"><i class="fa fa-plus-square"></i>&nbsp; Add Project</button>
+	<div class="form-inline" ng-show="newProject">
+		<input ng-model="project.companyName" type="text" placeholder="eg. Project Name"  class="form-control">
+		<button class="btn btn-primary" ng-click="saveProject()">Save</button>
+		<button class="btn btn-default" ng-click="newProject = !newProject; project.companyName = ''">Cancel</button>
+	</div>
+</div>
+<div>
+	<div class="panel-body no-padding">
+
+		<ul class="company-list" resizeable-listing="projects">
+			<li  ng-repeat="project in projects | orderBy:['-role','name']" class="{{project.role}} project-item clearfix" ng-controller="ProjectCtrl" toggle-board-lists data-id="{{project.accountId}}"
+			ng-init="aclByProject=getAccessMatrix(project.role)" ng-if="project.ownerStatus!='CLOSED'">
+				<div class="cell clearfix">
+					<div class="pull-left project-title">
+						<h3 class="header trigger" ng-class="{'centered': !project.desc}" title="{{project.name}} " id="projectName-{{project.accountId}}">
+							{{project.name | characters:100}}
+							<i ng-if="project.status=='PENDING'" class="pull-right"><small>Pending Invitation - "You are invited to join my project."</small></i>
+						</h3>
+						<span class="proj-desc trigger" id="projectDesc-{{project.accountId}}">{{project.desc}}</span>
+					</div>
+					<div class="project-action">
+						<div ng-if="project.accountStatus=='ENABLED' && aclByProject.project.createBoard">
+							<button class="btn btn-info btn-sm" ng-click="createBoard(project.accountId)" ng-disabled="(project.boards | filter:{status:'ACTIVE'}).length >= maxBoardsPerProject"><i class="fa fa-plus-circle"></i> <strong>New Board</strong></button>
+							<button class="btn btn-warning btn-sm" ng-click="projectSettings(project.accountId)"><i class="fa fa-gear"></i> <strong>Project Settings</strong></button>
+						</div>
+						<div ng-if="project.status=='PENDING'"> <!-- PENDING INVITATION -->
+							<button class="btn btn-sm btn-info" type="button" ng-click="acceptInvite(project.accountId)"><i class="glyphicon glyphicon-ok-sign"></i> <strong>Accept</strong></button>
+							<button class="btn btn-sm btn-danger" type="button" ng-click="declineInvite(project.accountId)"><i class="glyphicon glyphicon-remove-sign"></i> <strong>Decline</strong></button>
+						</div>
+					</div>
+				</div>
+				<div class="board-group" ng-if="project.accountStatus=='ENABLED' && project.status != 'PENDING'">
+					<div ng-show="numOfActiveBoard() === 0" class="no-active-boards">No active boards.</div>
+					<div ng-repeat="board in filterActiveBoards() | orderBy:['status','title']" class="board-row clearfix {{board.status}}" ng-init="aclByBoard=getAccessMatrix(project.role, board.boardRole)">
+						<div class="pull-left">
+							<!-- ACTIVE -->
+							<a ng-if="board.status !== 'COMPLETED'" href="#board/{{project.accountId}}/{{board.id}}" title="{{board.description}}" class="board-title no-decoration">
+								<strong>{{board.title | characters:150}}</strong>
+							</a>
+							<!-- COMPLETED -->
+							<a ng-if="board.status === 'COMPLETED'" href="#board/{{project.accountId}}/{{board.id}}/all" title="{{board.description}}" class="board-title no-decoration">
+								<strong>{{board.title | characters:150}}</strong>
+								<span ng-if="board.status === 'COMPLETED'" title="This board has been completed."><i class="fa fa-check-circle"></i></span>
+							</a>
+						</div>
+						<div class="pull-right board">
+							<a href="javascript:;" ng-if="aclByBoard.project.showBoardSettings" ng-click="manageBoard(project.accountId, board.id, $index, aclByBoard)"><i class="fa fa-cog"></i> Board Settings</a>&nbsp;
+							<a href="javascript:;" ng-if="aclByBoard.project.deleteBoard" ng-click="deleteBoard(project.accountId, board.id, $index)"><i class="fa fa-trash-o"></i> Delete</a>
+						</div>
+					</div>
+					
+				</div>
+
+			</li>
+		</ul>
+
+	</div>
+</div>

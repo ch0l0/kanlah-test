@@ -1,0 +1,196 @@
+
+<nav class="slide-panel" ng-class="{on: toggled}">
+	<a toggle-slide-menu="close"  href="javascript:;" class="slide-toggle exit"  data-toggle="tooltip" data-placement="right" title="Close"><i class="fa fa-arrow-left fa-2x"></i></a>
+	<a toggle-slide-menu="members"  href="javascript:;" class="slide-toggle"  data-toggle="tooltip" data-placement="right" title="Manage Members"><i class="fa fa-users fa-2x"></i></a>
+	<a toggle-slide-menu="activity" href="javascript:;" class="slide-toggle activity"  data-toggle="tooltip" data-placement="right" title="Board Activities"><i class="fa fa-list-alt fa-2x"></i></a>
+
+	<div class="pane side-activity-stream activities hide" ng-controller="ViewBoardActivitiesCtrl">
+		<div><h4>Board Activities</h4></div>
+		<ul class="list-style-clear member list-activities" data-scroll="activities">
+			<li class="clearfix" ng-repeat="activity in activities">
+				<img class="tiny-avatar" data="activity.actor" avatar nopopover="true"></a>
+				<div class="activity">
+					<a href="javascript:;" class="no-decoration" ng-click="viewItem(activity.type, activity.recordId)">
+						<span>
+							{{activity.actor.fullname}} <b>{{activity | activityMessage}}</b><br>
+							<i class="activity-taken">{{ activity.time | formatDate:'dd-MMM-yyyy HH:mm:ss'}}</i>
+						</span>
+					</a>
+				</div>
+			</li>
+		</ul>
+		<div ng-if="!activities.length"><i>It seems that there's no activities for this board yet. Start updating the board and it will automatically populate the activities.</i></div>
+		<br>
+		<div>
+			<button ng-if="!loading" class="btn btn-default load-more" ng-click="loadMore()" ng-hide="!activities.length || page == numberOfPages" ng-disabled="page > numberOfPages">Load More</button>
+			<button ng-if="loading" class="btn btn-default load-more"><i class="fa fa-refresh"></i>&nbsp;Loading..</button>
+		</div>
+	</div>
+
+	<div class="pane side-manage-members hide" ng-controller="AssignBoardMemberCtrl" assign-members="board">
+
+		<div ng-show="userInfo.acl.board.showManageLink"><i>Click 'Members' to list all project members and drag the name card to the Members box below to add them to the board.</i></div>
+		<div class="members">
+			<!--i class="fa fa-group fa-lg members-toggle" ng-click="coyToggled = !coyToggled" title="Manage Board Members"></i-->
+			<button type="button" class="btn btn-warning btn-xs pull-right btn-manage-members" ng-click="showManageMembers()" title="Manage Board Members" ng-show="userInfo.acl.board.showManageLink">
+				<span class="fa fa-group"></span> Members
+			</button>
+			<h4>Members</h4>
+			<div class="coy-members" ng-class="{coyShow: coyToggled}">
+				<div class="quick-search">
+					<label>Search by name:</label>
+					<input class="form-control" type="text" parsley-required="true" placeholder="eg. Joe" ng-model="search.fullname"></input>
+				</div>
+				<ul class="member-list clearfix">
+					<li class="list" ng-repeat="cm in members | filter:{ fullname: search.fullname }" ng-if="!cm.boardRole && cm.status!='PENDING'" ng-hide="cm.userStatus =='CLOSED'">
+						<div class="tablet clearfix">
+							<a id="{{cm.userId}}" class="member" data-member="{{cm}}"><img class="small-avatar grab" data="cm" avatar nopopover="true">
+								<span><i>{{cm.fullname}}</i><br/>{{cm.role}}</span>
+							</a>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div ng-include="'/partials/dashboard/legend.html'"></div>
+			<div class="board-members">
+				<div class="member-list clearfix">
+					<ul>
+						<li class="list" ng-repeat="bm in members" ng-if="bm.boardRole" ng-init="aclByMember=getAccessMatrix(bm.role,bm.boardRole)" data-draggable="{{aclByMember.board.addRemoveMember}}" ng-hide="bm.userStatus =='CLOSED'">
+							<a data-html="true" data-container="body" data-title="{{bm.fullname}}" data-trigger="hover" data-toggle="popover" data-placement="right"  data-content="
+								<p>
+									<strong>Username:</strong> {{bm.username}}<br>
+									<strong>Email:</strong> {{bm.email}}<br>
+									<strong>Project Role:</strong> {{bm.role}}<br>
+									<strong>Account Status:</strong> {{bm.userStatus}}
+								</p>
+							" id="{{bm.userId}}" class="member" data-member="{{bm}}"><img class="small-avatar {{aclByMember.board.addRemoveMember && 'grab'||''}}" data="bm" avatar></a>
+							<a class="avatar-text" title="{{bm.fullname}}">{{bm.fullname}}</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</nav>
+
+<div class="board-area" ng-click="boardClicked($event)">
+	<!-- HEADER BAR -->
+	<header class="navbar">
+		<a href="#/dashboard"><h5>{{accountInfo.name | characters:50}}</h5></a>/<h5>{{boardInfo.title | characters:50}}</h5>
+		<div class="boards-list">
+			<select ng-model="selectedBoard" ng-options="board as board.title for board in boardListing" ng-init="initBoard()" ng-change="switchBoard()"></select>
+			<input type="checkbox" ng-checked="showAll" ng-click="showAllToggle($event)"/><label>Show All</label>
+		</div>
+
+	</header>
+	<!-- END HEADER BAR -->
+
+
+	<ul id="sortable-columns" sortable-columns ng-controller="SortableColumnCtrl">
+
+		<li class="list" ng-controller="ViewColumnCtrl" ng-repeat="column in columns | orderBy:'pos'" data-pos="{{column.pos}}" data-id="{{column.id}}">
+
+			<!-- CONTEXT MENU -->
+			<ul class="dropdown-menu dropdown-menu-right" ng-controller="ContextMenuColumnCtrl">
+				<li><a href="javascript:;" ng-click="contextNewCard($event)">Add a Card</a></li>
+				<li><a href="javascript:;" ng-click="updateMaxCards($event)">Set maximum cards</a></li>
+				<li ng-if="!column.subscribed"><a href="javascript:;" ng-click="subcribeColumn($event)">Subscribe</a></li>
+				<li ng-if="column.subscribed"><a href="javascript:;" ng-click="unSubcribeColumn($event)"  class="clearfix"><span class="pull-left">Subscribe</span><i class="fa fa-check-square-o pull-right"></i></a></li>
+				<li class="divider"></li>
+				<li><a href="javascript:;" ng-click="deleteColumn()">Delete</a></li>
+			</ul>
+			<!-- END CONTEXT MENU -->
+
+			<div class="pane">
+				<div class="pane-header">
+					<h2 class="title" ng-dblclick="editTitle($event)">
+						<span class="pull-left">{{column.title | characters:22}}</span>
+						<span ng-if="column.subscribed" class="subscribe-icon"><i class="glyphicon glyphicon-eye-open"></i></span>
+
+						<span ng-if="column.max >= column.cards.length" class="pull-right count">{{column.cards.length}}/{{column.max}}</span>
+						<span ng-if="column.max < column.cards.length" class="pull-right count over">
+							<a title="Task card is more than maximum limit." href="javascript:;"><i class="glyphicon glyphicon-warning-sign icon-light"></i></a>
+							{{column.cards.length}}/{{column.max}}
+						</span>
+					</h2>
+
+
+
+					<div class="edit-title-group hide">
+						<input type="text" ng-model="column.title" class="form-control" placeholder="Title" />
+						<nav>
+							<button class="btn btn-primary btn-sm" ng-click="editColumnTitle()">Save</button>
+							<button class="btn btn-default btn-sm" ng-click="cancelEditTitle($event)">Cancel</button>
+						</nav>
+					</div>
+					<a href="javascript:;" class="context-menu" ng-click="toggleContextMenu($event)" data-open="context"><i class="fa fa-gear" data-open="context"></i></a>
+				</div>
+
+				<!-- START OF CARD LOOP -->
+					<div class="cards" ui-sortable ng-controller="SortableCardCtrl" ng-model="column.cards">
+					<!--div class="cards" sortable-cards ng-controller="SortableCardCtrl"-->
+						<div class="card" ng-repeat="card in column.cards" ng-controller="ViewCardCtrl" ng-dblclick="editCard(accountInfo.accountId, boardInfo.id)" data-id="{{card.id}}" data-pos="{{card.pos}}" post-cards-loop>
+							<label ng-if="card.labels.length" class="card-label" ng-style="{backgroundColor: '#' + card.labels[0].color}"></label>
+							<div class="card-details clearfix" >
+								<h1 class="card-title">{{card.name}}</h1>
+								<div class="card-image-display" ng-repeat="attachedImage in (card.attachments | orderBy: 'createdAt' | filterByImage)">
+									<a ng-if="attachedImage" title="{{attachedImage.name}}"><img alt="jpg" ng-src="{{staticServer}}/{{attachedImage.relativePath}}"></a>
+								</div>
+
+								<!-- BADGES -->
+								<ul class="card-badges pull-left">
+									<li class="label bg-default" ng-show="card.subscribed" >
+										<a href="javascript:;" title="You are subscribed to this card."><i class="glyphicon glyphicon-eye-open"></i></a>
+									</li>
+									<li class="label bg-default" ng-show="card.attachments.length" >
+										<a href="javascript:;" title="{{card.attachments.length}} attachment(s)">{{card.attachments.length}} <i class="glyphicon glyphicon-paperclip"></i></a>
+									</li>
+									<li class="label bg-default" ng-show="card.dueDate">
+										<a href="javascript:;" title="Due on {{card.dueDate}}"><i class="glyphicon glyphicon-time"></i></a>
+									</li>
+								</ul>
+								<!-- BADGES -->
+								<ul ng-if="card.assignedUsers.length > 0" class="card-assignee pull-right">
+									<li ng-repeat="assignedUser in card.assignedUsers | limitTo:2" class="hidden-users-count" ng-hide="assignedUser.status =='CLOSED'">
+										<a data-html="true" data-container="body" data-title="{{assignedUser.fullname}}" data-trigger="hover" data-toggle="popover" data-placement="right"  data-content="
+											<p>
+											<strong>Username:</strong> {{assignedUser.username}}<br>
+											<strong>Email:</strong> {{assignedUser.email}}<br>
+											</p>
+										" id="{{assignedUser.userId}}" class="member" data-member="{{assignedUser}}"><img class="tiny-avatar" data="assignedUser" avatar></a>
+										<span ng-if="card.assignedUsers.length > 2 && $index == 1" class="badge label label-info">+{{card.assignedUsers.length - 2}}</span>
+									</li>
+									<!--li ng-if="card.assignedUsers.length > 1" class="hidden-users-count member position-relative hide"><span>+{{card.assignedUsers.length - 1}}</span><img class="tiny-avatar" data="assignedUser" src="images/avatar-blank.jpg"></li-->
+								</ul>
+							</div>
+						</div>
+
+					<!-- CREATE CARD FORM -->
+					<div class="card-add" ng-show="newCard">
+						<form role="form" ng-controller="NewCardCtrl" ng-submit="createNewCard($event)">
+							<textarea ng-model="card.name" rows="3" class="form-control"></textarea>
+							<nav>
+								<button type="submit" class="btn btn-primary  btn-sm">Save</button>
+								<button class="btn btn-default  btn-sm" ng-click="cancelCreateCard();hideCreateCardForm($event);">Cancel</button>
+							</nav>
+						</form>
+					</div>
+					<!-- END CREATE CARD FORM -->
+					
+					</div>
+
+
+				
+				<!-- END OF CARD LIST -->
+				
+				<div class="card-add-pane">
+					<button class="btn btn-default btn-sm" ng-click="newCardTrigger($event)" ng-hide="newCard"><span class="glyphicon glyphicon-plus"></span> Add a card</button>
+				</div>
+				
+			</div>
+		</li>
+		<li class="create-column-action">
+			<button class="btn btn-info" ng-click="createNewColumn()"><span class="glyphicon glyphicon-th-list"></span> Add Column</button>
+		</li>
+	</ul>
+</div>

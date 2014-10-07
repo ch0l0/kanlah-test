@@ -1,0 +1,14 @@
+<div class="default-template modal-panel">
+	<div class="modal-header"><h4 class="modal-title"><i class="fa fa-gear"></i> Set Max Cards</h4></div>
+	<div class="panel-body">
+		<form parsley-validator data-submit="save()">
+			<div class="form-group">
+				<input ng-model="column.max" type="number" class="form-control" placeholder="Maximum number of cards" parsley-required="true" parsley-type="number" parsley-min="1" parsley-max="100">
+			</div>
+			<nav class="pull-right">
+				<button type="submit" class="btn btn-info" tabindex="5">Save</button>
+				<button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+			</nav>
+		</form>
+	</div>
+</div>

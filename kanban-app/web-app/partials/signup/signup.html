@@ -1,0 +1,39 @@
+<div class="container default-template">
+	<div class="col col-lg-6 center">
+		<h3 class="text-center">Welcome to KANLAH!</h3>
+		<div class="panel panel-default">
+			<div class="panel-heading text-center"><h3 class="panel-title">Sign Up</h3></div>
+			<div class="panel-body">
+					<form parsley-validator data-submit="signup()">
+
+						<div class="alert alert-danger error-msg" ng-show="errorMessage">
+							{{errorMessage}}
+						</div>
+						<div class="form-group"><i>All fields are mandatory.</i></div>
+						<div class="form-group">
+							<label for="displayName">Your display name</label>
+							<input ng-model="account.displayName" type="text" class="form-control" placeholder="eg. John Doe" parsley-required="true" parsley-minlength="2" parsley-maxlength="25" parsley-alphanumspace="true">
+						</div>
+						<div class="form-group">
+							<label for="acctEmail">Your email address</label> <small><i>(Must be valid, will be verified)</i></small>
+							<input ng-model="account.email" type="email" id="acctEmail" class="form-control" placeholder="eg. john_doe@example.com" parsley-required="true" parsley-type="email" parsley-equalto="#email" parsley-equalto-message="Your email address should be the same as Confirm email address">
+							
+						</div>
+						<div class="form-group">
+							<label for="password">Confirm email address</label>
+							<input ng-model="account.confEmail" type="email" id="email" class="form-control" placeholder="eg. john_doe@example.com" parsley-required="true" parsley-type="email" parsley-equalto="#acctEmail" parsley-equalto-message="Confirm email address should be the same as Your email address">
+						</div>
+						<div class="form-group">
+							<label for="password">Type a password</label>
+							<input id="password" ng-model="account.password" type="password" class="form-control" placeholder="Password" parsley-required="true" parsley-minlength="6"  parsley-minlength-message="Password should be minimum of %s characters.">
+						</div>
+						<div class="form-group">
+							<a href="#" class="pull-right">Back to Sign In</a>
+							<div class="checkbox"><input parsley-group="terms" parsley-mincheck="1" parsley-mincheck-message="You have to agree to Terms and Policy" type="checkbox"> Agree to the <a target="_blank" href="http://www.kanlah.com/terms-and-conditions/">Terms & Conditions</a></div>
+						</div>
+						<button type="submit" class="btn btn-info"><strong>Sign Up</strong></button>
+					</form>
+			</div>
+		</div>
+	</div>
+</div>

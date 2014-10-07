@@ -1,0 +1,167 @@
+<div class="default-template modal-panel">
+	<div class="modal-header"><h4 class="modal-title"><i class="fa fa-gear"></i> Project and Team Settings</h4></div>
+	<div class="border-bottom-extended">
+		<ul class="nav nav-tabs  inline plain-tabs">
+			<li class="active"><a data-toggle="tab" ng-click="toggleTab('project')" style="cursor:pointer;">Manage Project</a></li>
+			<li><a data-toggle="tab" ng-click="toggleTab('team')" style="cursor:pointer;">Manage Team</a></li>
+			<li><a data-toggle="tab" ng-click="toggleTab('label')" style="cursor:pointer;">Manage Label</a></li>
+		</ul>
+	</div>
+	<div class="panel-body">
+
+		<div class="bs-component" style="padding:20px 10px;">
+		  	<div class="tab-content" id="myTabContent">
+		  		<!-- Project -->
+				<div id="project">
+					<form parsley-validator data-submit="updateProject()">
+						<div class="form-group">
+							<label for="projectName">Project Name</label>
+							<input id="projectName" class="form-control" type="text" ng-model="project.companyName" placeholder="Project Name"  parsley-required="true" parsley-minlength="2" parsley-maxlength="25">
+						</div>
+						<div class="form-group">
+							<label for="ProjectDescription">Description</label>
+							<textarea id="ProjectDescription" class="form-control" ng-model="project.companyDescription" placeholder="Description" parsley-minlength="2" parsley-maxlength="255"></textarea>
+						</div>
+					<hr>
+					<nav class="pull-right">
+						<button type="submit" class="btn btn-info" tabindex="5">Save</button>
+						<button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+					</nav>
+					</form>
+				</div>
+				<!-- Label -->
+				<div id="label" style="display:none;" ng-controller="LabelCtrl">
+					<form parsley-validator data-submit="submitLabel(editMode)">
+					<div class="clr-list" align="center">
+						<div data-toggle="buttons" class="btn-group">
+							<label ng-repeat="(i,color) in colors" class="btn btn-mini clr-opt clr-opt-{{i+1}}" ng-style="{backgroundColor: '#' + color}" ng-click="colorSelector(i,color)">
+								<input data-select="onSelect" type="radio" value="{{color}}" name="options" data-required="true">
+								<i class="fa fa-check check-{{i}}"></i>
+							</label>
+						</div>
+					</div>
+
+					<input type="text" class="form-control clr-space" ng-model="label" name="label" placeholder="Label Name" parsley-minlength="2" parsley-required="true">
+
+					<div class="clr-space" align="center">
+						<button ng-hide="editMode" data-edit="submit" type="submit" class="clr btn btn btn-info btn-sm">Add Label</button>
+						<button ng-show="editMode" data-edit="submit" type="submit" class="clr btn btn-info btn-sm">Update Label</button>
+						<button ng-show="editMode" type="button" class="clr btn btn-info btn-sm" ng-click="cancelEdit()">Cancel</button>
+					</div>
+
+					<div class="line line-dashed m-t-large"></div>
+
+					<div class="clr-space">
+						<ul class="labels">
+							<li data-index="{{ $index }}" ng-repeat="label in labels | orderBy:'name'" id="label-{{label.id}}">
+								<div ng-style="{backgroundColor: '#' + label.color}" class="btn lbl" ng-click="displayLabel(label)">
+									<span class="label-name">{{ label.name }}</span>
+									<span class="label-close"style="right:6%;position:absolute;">
+										<a href="javascript:;" style="float:right" class="close lbl pull-right" title="Delete Label" ng-click="deleteLabel(label.id)"><i class="fa fa-times" /></i></a>
+									</span>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<hr>
+					<nav class="pull-right">
+						<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+					</nav>
+					</form>
+				</div>
+				<!-- Team -->
+				<div id="team"  style="display:none;">
+					<div class="clr-space" ng-controller="AccountInfoCtrl">
+						<div class="coyShow coy-project-members">
+							<ul class="member-list clearfix">
+								<li class="list" ng-repeat="cm in members | orderBy:['status','-role']" id="member-{{cm.userId}}" ng-hide="cm.userStatus =='CLOSED'">
+									<div class="tablet clearfix">
+										<a id="{{cm.userId}}" class="member" data-member="{{cm}}"><img class="small-avatar" data="cm" avatar nopopover="true">
+											<span>
+												<i>{{cm.fullname}}</i><br/>{{cm.role}}<br/>
+												<label class="text-danger" class="status" ng-if="cm.userStatus=='SUSPENDED'">SUSPENDED</label>
+												<label class="status" ng-if="cm.userStatus!='SUSPENDED'">{{cm.status}}</label>
+											</span>
+										</a>
+										<span class="pull-right manageMember" ng-hide="cm.role=='OWNER'">
+											<a href="javascript:;" ng-click="resendInvite(cm)" ng-show="cm.status=='PENDING'" title="Resend Invite"><i class="fa fa-envelope-o"></i></a>
+											<span ng-if="userInfo.projectRole == 'OWNER'" ng-hide="cm.status=='PENDING'">
+												<a href="javascript:;" ng-click="setMemberRole(cm)" ng-hide="cm.role=='ADMIN'" title="Set as Admin"><i class="fa fa-square-o"></i></a>
+												<a href="javascript:;" ng-click="setMemberRole(cm)" ng-show="cm.role=='ADMIN'" title="Set as Member"><i class="fa fa-check-square-o"></i></a>
+											</span>
+											<a ng-if="userInfo.projectRole == 'OWNER' || (userInfo.projectRole == 'ADMIN' && cm.role=='MEMBER')" href="javascript:;" ng-click="deleteMember(cm.userId)" ><i class="fa fa-trash-o"></i></a>
+										</span>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<br>
+					<div class="clr-space"></div>
+					<div class="clr-space" ng-controller="AddMemberCtrl">
+						<div class="advance-toggle btn btn-default" ng-click="toggleAdvanced()">
+							<a href="javascript:;">
+								<i class="{{toggleIcon}}"></i>&nbsp;&nbsp;Add Team Member
+							</a>
+						</div>
+						<!--<div class="clearfix"><a href="javascript:;" ng-click="toggleAdvanced()"><span class="glyphicon {{advancedToggleIcon}}"></span>&nbsp;Add Team Member</a></div>-->	
+						<div class="clr-space light-div-container" ng-show="advancedToggleShown">
+							<label class="radio-button" ng-click="toggleMember(0)">  
+								<input name="button1" id="NewMemberCheck" type="radio" checked>  
+								<span class="outer"><span class="inner"></span></span>  
+								New Member
+							</label> 
+
+							<label class="radio-button" ng-click="toggleMember(1)">  
+								<input name="button1" id="ExistingMemberCheck" type="radio">  
+								<span class="outer"><span class="inner"></span></span>  
+								Existing Member
+							</label> 
+
+							<!--<input id="NewMemberCheck" type="radio" name="select" value="New" ng-click="toggleMember(0)" checked> New &nbsp;&nbsp; &nbsp;
+							<input id="ExistingMemberCheck" type="radio" name="select" value="Existing" ng-click="toggleMember(1)"> Existing-->
+						</div>	
+						<div id="newMember" class="clr-space">
+							<form parsley-validator data-submit="addMember()" ng-show="advancedToggleShown">
+								<div class="form-group">
+									<label for="displayName">Display name</label>
+									<input ng-model="member.displayName" type="text" class="form-control" id="displayName" placeholder="eg. John Doe" parsley-required="true" parsley-minlength="2" parsley-maxlength="25">
+								</div>
+								<div class="form-group">
+									<label for="email">Email address</label>
+									<input ng-model="member.email" type="text" class="form-control" id="email" placeholder="eg. john_doe@example.com" parsley-required="true" parsley-type="email" parsley-equalto="#confirmEmail" parsley-equalto-message="Your email address should be the same as Confirm email address" auto-fill>
+								</div>
+								<div class="form-group">
+									<label for="confirmEmail">Confirm email address</label>
+									<input ng-model="member.confirmEmail" type="text" class="form-control" id="confirmEmail" placeholder="eg. john_doe@example.com" parsley-required="true" parsley-type="email" parsley-equalto="#email" parsley-equalto-message="Confirm email address should be the same as Your email address" auto-fill>
+								</div>
+								<div class="form-group">
+									<label for="password">Type a Password</label>
+									<input ng-model="member.password" type="password" class="form-control" id="password" placeholder="Password" parsley-minlength="6" parsley-required="true" auto-fill>
+								</div>
+								<button type="submit" class="btn btn-info"><strong>Invite</strong></button>
+							</form>
+						</div>
+						<div class="clr-space" style="display:none;" id="existingMember" ng-controller="InviteMemberCtrl">
+							<form parsley-validator data-submit="inviteMember()" ng-show="advancedToggleShown">
+								<div class="form-group">
+									<label for="email">Email address</label>
+									<input ng-model="member.existingEmail" type="email" class="form-control" id="existingEmail" placeholder="eg. john_doe@example.com" parsley-required="true" parsley-type="email">
+								</div>
+								<button type="submit" class="btn btn-info"><strong>Invite</strong></button>
+							</form>
+						</div>
+					</div>
+					<hr>
+					<nav class="pull-right">
+						<button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+					</nav>
+				</div>
+			</div>
+			<!--div class="btn btn-primary btn-xs" id="source-button" style="display: none;">&lt; &gt;</div-->
+			<p class="pull-left">
+				<button class="btn btn-danger" ng-click="deleteProject($event)"><i class="fa fa-trash-o"></i> Delete</button>
+			</p>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>External Login Test</title>
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+<h1>Kanban: External Login Test</h1>
+
+<form id="submitForm">
+	<input type="text" name="email" placeholder="Email">
+	<input type="text" name="password" placeholder="Password">
+	<input type="submit" value="Search">
+</form>
+<!-- the result of the search will be rendered inside this div -->
+<div id="result"></div>
+
+<script>
+	$(document).ready(function() {
+		$('#submitForm').on('submit', function() {
+			jQuery.ajax({
+				url: 'http://192.168.101.65:8080/login/external',
+				type: "POST",
+				dataType: "json",
+				contentType: "application/json",
+				processData: false,
+				data: JSON.stringify({ email: this.email.value, password: this.password.value }),
+				success: function(json) {
+					location.href = json.data.redirectUrl;
+				},
+				error: function(err) {
+					alert(err.responseText);
+				}
+			});
+			return false;
+		});
+	});
+</script>
+
+</body>
+</html>

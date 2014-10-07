@@ -1,3 +1,5 @@
+//AuthController.groovy
+
 package kanban
 
 import org.apache.shiro.SecurityUtils
